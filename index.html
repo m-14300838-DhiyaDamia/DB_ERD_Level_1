@@ -41,7 +41,7 @@ dialog{border:1px solid var(--ln);border-radius:12px;background:var(--sf);color:
 <script>
 const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const C={E:'#2f6fdd',A:'#2e9e6b',K:'#d9a21b',R:'#e0508f'};
-const SHEET_URL=''; // Tampal URL Google Apps Script Web App (berakhir /exec) di sini. Lihat Code.gs
+const SHEET_URL='https://script.google.com/macros/s/AKfycbzcYIgETXy8Xm7bJ5X0ZH173xQSKvsCwijinPb52i15ShHVI1YpwkplcMfMUYFUK7cgFA/exec'; // Tampal URL Google Apps Script Web App (berakhir /exec) di sini. Lihat Code.gs
 let S={done:{},best:0,att:0,ok:0,tot:0,lv:'',u:null,sent:0,pend:null};
 try{Object.assign(S,JSON.parse(localStorage.getItem('erdd')||'{}'))}catch(e){}
 const save=()=>{try{localStorage.setItem('erdd',JSON.stringify(S))}catch(e){}},fin=k=>{S.done[k]=1;save();if(ready())send()};
