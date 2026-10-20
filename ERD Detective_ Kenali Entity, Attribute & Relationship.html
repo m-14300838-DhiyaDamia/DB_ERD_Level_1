@@ -1,0 +1,205 @@
+<!DOCTYPE html><html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>ERD Detective</title>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e9eff7;--sf:#fff;--ink:#14213a;--mu:#5b6b85;--ln:#d0daea;--E:#2f6fdd;--A:#23895c;--K:#b98200;--R:#d03a81;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0e1626;--sf:#17233a;--ink:#e8eefb;--mu:#9fb0cc;--ln:#2a3a58;--E:#6b9bff;--A:#4cc38a;--K:#e8b230;--R:#f07bad}}
+:root[data-theme=dark]{--bg:#0e1626;--sf:#17233a;--ink:#e8eefb;--mu:#9fb0cc;--ln:#2a3a58;--E:#6b9bff;--A:#4cc38a;--K:#e8b230;--R:#f07bad}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.6 Lexend,system-ui,Segoe UI,sans-serif}
+.app{display:grid;grid-template-columns:232px 1fr;min-height:100vh}
+nav{background:var(--sf);border-right:1px solid var(--ln);padding:18px 12px;position:sticky;top:0;height:100vh;overflow:auto}
+nav h1{font-size:17px;margin:0 6px 2px;font-weight:800}nav small{display:block;margin:0 6px 14px;color:var(--mu);font-size:12px}
+nav button{display:flex;gap:10px;align-items:center;width:100%;text-align:left;border:0;background:none;color:var(--ink);padding:9px 10px;border-radius:8px;font:inherit;cursor:pointer}
+nav button:hover{background:var(--bg)}nav button.on{background:var(--ink);color:var(--sf)}
+nav i{width:10px;height:10px;border-radius:3px;flex:none}
+main{padding:26px clamp(14px,3vw,36px);max-width:960px;width:100%}
+h2{font-size:24px;margin:0 0 6px;font-weight:800}h3{margin:0 0 6px}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:12px;padding:18px;margin:14px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.grid .card{margin:0;cursor:pointer;border-top:5px solid var(--c);text-align:left;font:inherit;color:inherit}
+.grid .card:hover{border-color:var(--c)}
+.mu{color:var(--mu)}.big{font-size:34px;font-weight:800;margin:4px 0}
+.b,.b2{font:600 14px Lexend,sans-serif;border:0;border-radius:8px;padding:9px 16px;cursor:pointer;background:var(--E);color:#fff;margin:4px 4px 4px 0}
+:root:not([data-theme=light]) .b{--x:0}.b2{background:var(--bg);color:var(--ink);border:1px solid var(--ln)}
+.b:focus-visible,.b2:focus-visible,nav button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--K);outline-offset:2px}
+.bar{height:10px;background:var(--ln);border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:var(--A);transition:width .3s}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--ln);flex-wrap:wrap}
+select,input[type=text]{font:inherit;padding:6px 8px;border-radius:7px;border:1px solid var(--ln);background:var(--sf);color:var(--ink);max-width:100%}
+.fb{border-left:6px solid}.good{border-color:var(--A)}.bad{border-color:var(--R)}
+.chip{display:inline-block;padding:3px 11px;border-radius:99px;font-size:13px;margin:3px 4px 3px 0;background:var(--bg);border:1px solid var(--ln)}.chip.on{background:var(--K);color:#fff;border-color:var(--K)}
+.opt{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 14px;border-radius:9px;border:1.5px solid var(--ln);background:var(--sf);color:var(--ink);font:inherit;cursor:pointer}.opt:hover{border-color:var(--E)}
+.svgw{background:#fff;border:1px solid var(--ln);border-radius:10px;overflow:auto}.svgw svg{display:block;min-width:520px}
+.tool{display:flex;flex-wrap:wrap;gap:4px}#cv{touch-action:none;min-width:760px}
+.tag{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+dialog{border:1px solid var(--ln);border-radius:12px;background:var(--sf);color:var(--ink);max-width:380px}
+@media(max-width:760px){.app{grid-template-columns:1fr}nav{position:static;height:auto;display:flex;overflow-x:auto;gap:4px;padding:10px;border:0;border-bottom:1px solid var(--ln)}nav h1,nav small{display:none}nav button{width:auto;white-space:nowrap}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head><body>
+<div class="app"><nav id="nav"></nav><main id="main"></main></div>
+<dialog id="dl"><p id="dm"></p><button class="b2" id="dn">Batal</button> <button class="b" id="dy">Ya, teruskan</button></dialog>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const C={E:'#2f6fdd',A:'#2e9e6b',K:'#d9a21b',R:'#e0508f'};
+let S={done:{},best:0,att:0,ok:0,tot:0,lv:''};
+try{Object.assign(S,JSON.parse(localStorage.getItem('erdd')||'{}'))}catch(e){}
+const save=()=>{try{localStorage.setItem('erdd',JSON.stringify(S))}catch(e){}},fin=k=>{S.done[k]=1;save()};
+const shuf=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
+function ask(m,cb){$('#dm').textContent=m;$('#dl').showModal();$('#dn').onclick=()=>$('#dl').close();$('#dy').onclick=()=>{$('#dl').close();cb()}}
+/* ---------- Chen Notation renderer ---------- */
+function shp(n){const{t,x,y}=n,s=esc(n.n||''),L=s.length;
+ if(t=='E'){const w=Math.max(104,L*9+26);return`<rect x="${x-w/2}" y="${y-22}" width="${w}" height="44" fill="#e3edff" stroke="${C.E}" stroke-width="2.5"/><text x="${x}" y="${y+5}" text-anchor="middle" font-weight="700" fill="#1b3f8f">${s}</text>`}
+ if(t=='A')return`<ellipse cx="${x}" cy="${y}" rx="${Math.max(46,L*4.6+16)}" ry="22" fill="${n.k?'#fff4d1':'#e2f6ec'}" stroke="${n.k?C.K:C.A}" stroke-width="2.5"/><text x="${x}" y="${y+5}" text-anchor="middle" fill="#1d3b2c"${n.k?' text-decoration="underline" font-weight="700"':''}>${s}</text>`;
+ const w=Math.max(64,L*7.2+16);return`<polygon points="${x},${y-34} ${x+w},${y} ${x},${y+34} ${x-w},${y}" fill="#fde3ef" stroke="${C.R}" stroke-width="2.5"/><text x="${x}" y="${y+5}" text-anchor="middle" font-weight="700" fill="#7a1f4b">${s}</text>`}
+function draw(N,Ed,sel){const g=i=>N.find(n=>n.id==i);let s='';
+ Ed.forEach((e,i)=>{const a=g(e[0]),b=g(e[1]);if(!a||!b)return;
+  s+=`<line data-e="${i}" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#44506a" stroke-width="2"/>`;
+  const r=a.t=='R'?a:b.t=='R'?b:0;
+  if(r&&r.c){const o=r==a?b:a,L=Ed.filter(q=>q.includes(r.id)).map(q=>q[0]==r.id?q[1]:q[0]),lb=r.c.split(':')[L.indexOf(o.id)];
+   if(lb)s+=`<text x="${o.x+(r.x-o.x)*.4}" y="${o.y+(r.y-o.y)*.4-9}" text-anchor="middle" font-weight="800" fill="#14213a" stroke="#fff" stroke-width="4" paint-order="stroke">${lb}</text>`}});
+ N.forEach(n=>{s+=`<g data-id="${n.id}" style="cursor:grab">${n.id==sel?`<rect x="${n.x-75}" y="${n.y-38}" width="150" height="76" fill="none" stroke="#888" stroke-dasharray="5"/>`:''}${shp(n)}</g>`});return s}
+const svgW=(N,Ed,w,h)=>`<div class="svgw"><svg viewBox="0 0 ${w} ${h}" font-family="Lexend,Arial,sans-serif" font-size="13">${draw(N,Ed)}</svg></div>`;
+function star(e,at){const N=[{id:0,t:'E',x:280,y:215,n:e}],Ed=[];at.forEach((a,i)=>{const k=a.endsWith('*');N.push({id:i+1,t:'A',x:(i+.5)*560/at.length,y:i%2?105:45,n:k?a.slice(0,-1):a,k});Ed.push([0,i+1])});return svgW(N,Ed,560,260)}
+const rel=(a,r,b,c)=>svgW([{id:1,t:'E',x:110,y:70,n:a},{id:2,t:'R',x:300,y:70,n:r,c},{id:3,t:'E',x:490,y:70,n:b}],[[1,2],[2,3]],600,140);
+/* ---------- navigation & pages ---------- */
+const P={},M=[['home','Papan Pemuka','#14213a'],['A','A. Learn ERM','#2f6fdd'],['B','B. Entity or Attribute?','#2e9e6b'],['C','C. Find the Key!','#d9a21b'],['D','D. Relationship Detective','#e0508f'],['E','E. Draw Your ERD','#2f6fdd'],['F','F. Challenge Quiz','#e0508f'],['G','Panduan Pensyarah','#5b6b85']];
+$('#nav').innerHTML='<h1>ERD Detective</h1><small>DAT20103 Database · UTHM</small>'+M.map(m=>`<button data-p="${m[0]}"><i style="background:${m[2]}"></i>${m[1]}</button>`).join('');
+$('#nav').onclick=e=>{const b=e.target.closest('button');if(b)go(b.dataset.p)};
+function go(p){document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.p==p));P[p]();scrollTo(0,0)}
+const DESC={A:'Kenali Entity, Attribute dan Relationship dalam 3 langkah.',B:'Kategorikan istilah daripada senario sebenar.',C:'Pilih Key Attribute yang mengenal pasti setiap rekod.',D:'Kesan dua entity, nama relationship dan cardinality.',E:'Bina ERD Chen Notation sendiri dan eksport PNG.',F:'15 soalan bercampur dengan markah automatik.'};
+P.home=()=>{const n=Object.keys(S.done).length,pc=Math.round(n/6*100);
+ $('#main').innerHTML=`<h2>Selamat datang, Detektif ERD!</h2><p class=mu>Pelajari cara menukar senario menjadi Entity, Attribute dan Relationship.</p>
+ <div class=card><b>Kemajuan: ${n}/6 modul</b><div class=bar><i style="width:${pc}%"></i></div>
+ <p class=mu>Percubaan kuiz: ${S.att} · Skor terbaik: ${S.best}% · Jawapan betul: ${S.ok}/${S.tot}</p>
+ ${M.slice(1,7).filter(m=>S.done[m[0]]).map(m=>`<span class="chip on">🏅 ${m[1].slice(3)}</span>`).join('')||'<span class=mu>Selesaikan modul untuk memperoleh lencana.</span>'} ${S.lv?`<span class="chip on">⭐ ${S.lv}</span>`:''}</div>
+ <div class=grid>${M.slice(1,7).map(m=>`<button class=card style="--c:${m[2]}" onclick="go('${m[0]}')"><h3>${m[1]}</h3><span class=mu>${DESC[m[0]]}</span><br>${S.done[m[0]]?'✅ Selesai':'Mula →'}</button>`).join('')}</div>
+ <p><button class=b2 id=rs>Set semula kemajuan</button></p>`;
+ $('#rs').onclick=()=>ask('Semua kemajuan sesi ini akan dipadam. Teruskan?',()=>{S={done:{},best:0,att:0,ok:0,tot:0,lv:''};save();go('home')})};
+/* Module A */
+P.A=(st=0)=>{const T=[
+ ['Langkah 1: Identify the Entity','Apakah objek atau perkara yang perlu disimpan rekodnya?','<p>Entity ialah objek, orang, tempat, peristiwa atau konsep dunia sebenar yang boleh dikenal pasti. Dalam Chen Notation, entity dipaparkan sebagai <b>segi empat tepat</b>.</p>'+svgW(['STUDENT','LECTURER','COURSE'].map((n,i)=>({id:i,t:'E',x:100+i*180,y:40,n})),[],560,80)+'<p class=mu>Contoh lain: BOOK, CUSTOMER, PRODUCT.</p>'],
+ ['Langkah 2: Identify the Attributes','Apakah maklumat yang perlu diketahui tentang entity tersebut?','<p><i>“A college stores information about its students. Each student has a matric number, name, date of birth and telephone number.”</i></p>'+star('STUDENT',['matric_no*','name','date_of_birth','telephone_no'])+'<p>Attribute dipaparkan sebagai <b>bujur (oval)</b>. <b>matric_no</b> ialah <b>Key Attribute</b> (bergaris bawah) kerana nilainya mengenal pasti setiap pelajar secara unik dan tidak boleh null.</p>'],
+ ['Langkah 3: Identify the Relationship','Bagaimanakah dua entity berkaitan antara satu sama lain?','<p><i>“Each student is enrolled in one programme. Each programme can have many students.”</i></p>'+rel('STUDENT','ENROLLED IN','PROGRAMME','M:1')+'<p>Relationship dipaparkan sebagai <b>berlian (diamond)</b>. Seorang student mendaftar dalam satu programme, tetapi satu programme mempunyai ramai student. Cardinality dari STUDENT ke PROGRAMME ialah <b>M:1</b>.</p>']][st];
+ $('#main').innerHTML=`<h2>Learn ERM</h2><div>${[0,1,2].map(i=>`<span class="chip ${i==st?'on':''}">${i+1}</span>`).join('')}</div><div class=card><h3>${T[0]}</h3><p><b>${T[1]}</b></p>${T[2]}</div>
+ ${st?'<button class=b2 id=pv>← Sebelum</button>':''}${st<2?'<button class=b id=nx>Seterusnya →</button>':'<button class=b id=ok>Selesai ✓</button>'}`;
+ if(st)$('#pv').onclick=()=>P.A(st-1);if(st<2)$('#nx').onclick=()=>P.A(st+1);else $('#ok').onclick=()=>{fin('A');go('home')}};
+/* Generic one-question-at-a-time runner */
+function seq(k,title,items,qf){let i=0,sc=0;const m=$('#main');
+ const step=()=>{if(i>=items.length){fin(k);m.innerHTML=`<div class=card><h2>${title}: selesai!</h2><p class=big>${Math.round(sc*10)/10} / ${items.length}</p><p>${sc/items.length>=.8?'Cemerlang! Anda menguasai bahagian ini.':'Bagus! Cuba lagi untuk skor lebih tinggi.'}</p><button class=b onclick="go('${k}')">Cuba semula</button><button class=b2 onclick="go('home')">Papan pemuka</button></div>`;return}
+  m.innerHTML=`<h2>${title}</h2><div class=bar><i style="width:${i/items.length*100}%"></i></div><p class=mu>Soalan ${i+1}/${items.length} · Skor ${Math.round(sc*10)/10}</p><div class=card id=q></div><div id=fb></div>`;
+  qf(items[i],$('#q'),(ok,tot,html)=>{sc+=ok/tot;S.ok+=ok;S.tot+=tot;save();$('#fb').innerHTML=`<div class="card fb ${ok==tot?'good':'bad'}">${ok==tot?'🎉 Tepat sekali! ':'💡 '}${html}</div><button class=b id=nx>${i+1<items.length?'Seterusnya':'Lihat skor'}</button>`;$('#nx').onclick=()=>{i++;step()};$('#nx').focus()})};step()}
+/* Module B */
+const NM={E:'Entity',A:'Attribute',R:'Relationship'},WY={E:'mewakili objek yang direkodkan',A:'menerangkan sesuatu tentang entity',R:'menghubungkan dua entity'};
+const QB=[
+['A bookstore stores information about books. Each book has a book ID, title, author and price.','BOOK:E,book_id:A,title:A,author:A,price:A','Hanya BOOK ialah objek yang direkodkan. Tiada relationship dinyatakan dalam senario ini; semua yang lain menerangkan BOOK.'],
+['A college stores information about students. Each student has a matric number, name and telephone number.','STUDENT:E,matric_no:A,name:A,telephone_no:A','Name dan telephone_no ialah maklumat tentang STUDENT, bukan entity berasingan.'],
+['A shop stores customers. Each customer has a customer ID, name and address.','CUSTOMER:E,customer_id:A,name:A,address:A','Address ialah attribute di sini kerana ia hanya menerangkan CUSTOMER. Bukan semua kata nama ialah entity!'],
+['A lecturer teaches courses. Each lecturer has a staff ID and name.','LECTURER:E,COURSE:E,TEACHES:R,staff_id:A,name:A','TEACHES ialah kata kerja yang menghubungkan dua entity, jadi ia Relationship.'],
+['A clinic records patients and doctors. Each doctor treats many patients. A patient has a patient ID and name.','PATIENT:E,DOCTOR:E,TREATS:R,patient_id:A,name:A','Dua objek utama (PATIENT, DOCTOR) dihubungkan oleh TREATS.'],
+['A company has employees. Each employee has an employee ID, name and salary. Employees work in departments.','EMPLOYEE:E,DEPARTMENT:E,WORKS IN:R,employee_id:A,salary:A','Salary menerangkan EMPLOYEE (attribute). DEPARTMENT ialah objek yang direkodkan sendiri.'],
+['A hotel records guests and rooms. A guest books a room. A room has a room number and room type.','GUEST:E,ROOM:E,BOOKS:R,room_no:A,room_type:A','Room number dan room type menerangkan ROOM; BOOKS menghubungkan GUEST dan ROOM.'],
+['A university records students and programmes. Each student is enrolled in one programme. A programme has a programme code.','STUDENT:E,PROGRAMME:E,ENROLLED IN:R,programme_code:A','Programme code ialah attribute PROGRAMME; ENROLLED IN ialah relationship.'],
+['A car rental records vehicles and customers. A customer rents vehicles. A vehicle has a plate number and model.','VEHICLE:E,CUSTOMER:E,RENTS:R,plate_no:A,model:A','Plate number dan model menerangkan VEHICLE, bukan entity baharu.'],
+['A library records members and books. A member borrows books. A member has a member ID and name. A book has an ISBN and title.','MEMBER:E,BOOK:E,BORROWS:R,member_id:A,name:A,isbn:A,title:A','Dua entity, satu relationship (BORROWS) dan lima attribute. Teliti siapa pemilik setiap attribute.']].map(q=>[q[0],q[1].split(',').map(x=>x.split(':')),q[2]]);
+P.B=()=>seq('B','Entity or Attribute?',QB,(q,box,rep)=>{
+ box.innerHTML=`<p>${esc(q[0])}</p>`+q[1].map((t,i)=>`<div class=row><b>${esc(t[0])}</b><select id=s${i}><option value="">Pilih…<option value=E>Entity<option value=A>Attribute<option value=R>Relationship</select></div>`).join('')+'<p id=er class=mu></p><button class=b id=ck>Semak jawapan</button>';
+ $('#ck').onclick=()=>{const v=q[1].map((t,i)=>$('#s'+i).value);if(v.includes('')){$('#er').textContent='Sila pilih kategori bagi semua istilah.';return}
+  const bad=q[1].filter((t,i)=>v[i]!=t[1]);rep(q[1].length-bad.length,q[1].length,(bad.length?bad.map(t=>`<b>${esc(t[0])}</b> ialah ${NM[t[1]]}: ia ${WY[t[1]]}.`).join('<br>')+'<br>':'')+esc(q[2]));$('#ck').remove()}});
+P.B.q=1;
+/* Module C */
+const QC=[['STUDENT','matric_no,name,date_of_birth,telephone_no',0,'Matric number unik bagi setiap pelajar. Nama boleh berulang.'],['COURSE','course_code,course_name,credit_hours',0,'Course code mengenal pasti satu kursus sahaja; credit hours dikongsi banyak kursus.'],['CUSTOMER','customer_id,name,address,telephone_no',0,'Customer ID unik dan sentiasa ada nilai. Name dan address boleh sama atau berubah.'],['BOOK','book_id,title,author,price',0,'Title, author dan price boleh sama pada beberapa buku. Book ID tidak.'],['EMPLOYEE','name,employee_id,salary,department',1,'Employee ID unik; salary dan department dikongsi ramai pekerja.'],['PRODUCT','price,product_name,product_code,brand',2,'Product code mengenal pasti satu produk; price dan brand boleh sama.']].map(q=>[q[0],q[1].split(','),q[2],q[3]]);
+P.C=()=>seq('C','Find the Key!',QC,(q,box,rep)=>{
+ box.innerHTML=`<p>Entity <b>${q[0]}</b> mempunyai attribute berikut. Yang manakah <b>Key Attribute</b> terbaik?</p>`+star(q[0],q[1])+q[1].map((a,i)=>`<button class=opt data-i=${i}>${a}</button>`).join('');
+ box.onclick=e=>{const b=e.target.closest('.opt');if(!b)return;const i=+b.dataset.i;box.innerHTML=`<p>Entity <b>${q[0]}</b></p>`+star(q[0],q[1].map((a,j)=>j==q[2]?a+'*':a));box.onclick=null;
+  rep(+(i==q[2]),1,(i==q[2]?'':`${q[1][i]} bukan key yang sesuai. `)+`Key yang betul: <b>${q[1][q[2]]}</b> (bergaris bawah). ${q[3]} Key mesti unik dan tidak boleh null.`)}});
+/* Module D */
+const QD=[['A lecturer can teach several courses. Each course is assigned to one lecturer.','LECTURER','COURSE','TEACHES','1:M','Satu lecturer ke banyak course (1:M dari LECTURER ke COURSE).'],['A student can enrol in many courses, and each course can have many students.','STUDENT','COURSE','ENROLS IN','M:N','Kedua-dua arah “banyak”, jadi M:N.'],['Each employee manages one store, and each store is managed by one employee.','EMPLOYEE','STORE','MANAGES','1:1','Kedua-dua arah “satu” mengikut senario, jadi 1:1.'],['A customer places many orders. Each order is placed by one customer.','CUSTOMER','ORDER','PLACES','1:M','Satu customer ke banyak order (1:M).'],['Each student is enrolled in one programme. Each programme can have many students.','STUDENT','PROGRAMME','ENROLLED IN','M:1','Banyak student ke satu programme (M:1 dari STUDENT ke PROGRAMME).']];
+P.D=()=>seq('D','Relationship Detective',QD,(q,box,rep)=>{
+ const o=(c,all)=>shuf([...new Set([c,...shuf(all.filter(x=>x!=c)).slice(0,2)])]),pr=QD.map(x=>x[1]+' & '+x[2]),rn=QD.map(x=>x[3]);
+ const sl=(id,a)=>`<select id=${id}><option value="">Pilih…${a.map(x=>`<option>${x}`).join('')}</select>`;
+ box.innerHTML=`<p>${esc(q[0])}</p><div class=row>Dua entity ${sl('d1',o(q[1]+' & '+q[2],pr))}</div><div class=row>Nama relationship ${sl('d2',o(q[3],rn))}</div><div class=row>Cardinality (arah: entity pertama → kedua) ${sl('d3',['1:1','1:M','M:1','M:N'])}</div><p id=er class=mu></p><button class=b id=ck>Semak jawapan</button>`;
+ $('#ck').onclick=()=>{const v=[$('#d1').value,$('#d2').value,$('#d3').value];if(v.includes('')){$('#er').textContent='Sila lengkapkan ketiga-tiga pilihan.';return}
+  const r=[v[0]==q[1]+' & '+q[2],v[1]==q[3],v[2]==q[4]];box.insertAdjacentHTML('beforeend',rel(q[1],q[3],q[2],q[4]));$('#ck').remove();
+  rep(r.filter(Boolean).length,3,`Entity ${r[0]?'✓':'✗'} · Relationship ${r[1]?'✓':'✗'} · Cardinality ${r[2]?'✓':'✗'}.<br>Jawapan: <b>${q[1]} — ${q[3]} — ${q[2]}</b>, <b>${q[4]}</b>. ${q[5]}`)}});
+/* Module F: quiz */
+const Q=(t,q,o,a,w)=>({t,q,o,a,w}),TOP={E:'Entity & Attribute',K:'Key Attribute',R:'Relationship',C:'Cardinality'},CD=['1:1','1:M','M:1','M:N'];
+const QF=[Q('E','Dalam “A clinic stores patient_id, name and address of each patient”, yang manakah Entity?',['PATIENT','name','address','patient_id'],0,'PATIENT ialah objek yang direkodkan; yang lain menerangkannya.'),
+Q('E','Attribute ialah…',['Maklumat yang menerangkan sesuatu entity','Objek utama yang direkodkan','Garis yang menghubungkan entity','Satu cardinality'],0,'Attribute menerangkan entity.'),
+Q('E','Dalam Chen Notation, Entity diwakili oleh…',['Segi empat tepat','Oval','Diamond','Garis putus-putus'],0,'Entity = segi empat tepat.'),
+{t:'E',q:'Padankan setiap istilah dengan kategorinya.',m:[['STUDENT','Entity'],['price','Attribute'],['ENROLLED IN','Relationship'],['matric_no','Key Attribute']],w:'STUDENT=Entity, price=Attribute, ENROLLED IN=Relationship, matric_no=Key Attribute (nilai unik).'},
+Q('E','Yang manakah attribute bagi entity COURSE?',['COURSE','course_name','LECTURER','TEACHES'],1,'course_name menerangkan COURSE.'),
+Q('K','Key Attribute terbaik bagi CUSTOMER ialah…',['name','address','customer_id','city'],2,'customer_id unik dan tidak null.'),
+Q('K','Mengapa name tidak sesuai sebagai key bagi STUDENT?',['Dua pelajar boleh berkongsi nama yang sama','Name terlalu pendek','Name ialah entity','Name tidak boleh disimpan'],0,'Key mesti mengenal pasti rekod secara unik.'),
+Q('K','Dalam Chen Notation, Key Attribute ditunjukkan dengan…',['Nama bergaris bawah','Kotak berganda','Huruf merah','Anak panah'],0,'Nama key attribute digaris bawah.'),
+Q('R','Dalam “A lecturer teaches many courses”, yang manakah nama relationship?',['TEACHES','LECTURER','COURSE','course_code'],0,'Kata kerja yang menghubungkan dua entity.'),
+Q('R','Bentuk yang mewakili Relationship dalam Chen Notation ialah…',['Diamond','Segi empat tepat','Oval','Bulatan'],0,'Relationship = diamond.'),
+Q('R','“Each student is enrolled in one programme.” Dua entity yang terlibat ialah…',['STUDENT & PROGRAMME','matric_no & name','ENROLLED IN & STUDENT','PROGRAMME & programme_code'],0,'Entity ialah STUDENT dan PROGRAMME.'),
+Q('R','Garis relationship dalam Chen Notation menyambungkan diamond kepada…',['Entity','Attribute sahaja','Key sahaja','Nilai null'],0,'Diamond disambung kepada entity yang terlibat.'),
+Q('C','“A lecturer teaches many courses; each course has one lecturer.” Cardinality LECTURER → COURSE?',CD,1,'1:M.'),
+Q('C','“A student enrols in many courses and each course has many students.” Cardinality?',CD,3,'M:N.'),
+Q('C','“Each employee manages one store and each store has one employee.” Cardinality?',CD,0,'1:1.')];
+P.F=()=>{const qs=shuf(QF).map(q=>q.o?{...q,s:shuf(q.o.map((x,i)=>[x,i==q.a]))}:{...q,s:shuf(q.m.map(x=>x[1]))});
+ $('#main').innerHTML=`<h2>Challenge Quiz</h2><p class=mu>${qs.length} soalan · soalan dan pilihan dikocok setiap percubaan.</p>`+qs.map((q,i)=>`<div class=card><p><b>${i+1}.</b> ${esc(q.q)}</p>${q.o?q.s.map((s,j)=>`<label class=opt><input type=radio name=q${i} value=${j}> ${esc(s[0])}</label>`).join(''):q.m.map((p,j)=>`<div class=row><b>${p[0]}</b><select id=m${i}_${j}><option value="">Pilih…${[...new Set(q.s)].map(x=>`<option>${x}`).join('')}</select></div>`).join('')}</div>`).join('')+'<p id=er class=mu></p><button class=b id=sb>Hantar jawapan</button>';
+ $('#sb').onclick=()=>{let un=0;qs.forEach((q,i)=>{q.u=q.o?(document.querySelector(`input[name=q${i}]:checked`)||{}).value:q.m.map((p,j)=>$(`#m${i}_${j}`).value);if(q.o?q.u===undefined:q.u.includes(''))un++});
+  if(un){$('#er').textContent=`Masih ada ${un} soalan belum dijawab.`;return}
+  const wr=new Set();let sc=0;const rv=qs.map((q,i)=>{const ok=q.o?q.s[q.u][1]:q.m.every((p,j)=>q.u[j]==p[1]);ok?sc++:wr.add(q.t);return`<div class="card fb ${ok?'good':'bad'}"><b>${i+1}. ${ok?'✓ Betul':'✗ Salah'}</b> — ${esc(q.q)}<br>${q.o?`Jawapan anda: ${esc(q.s[q.u][0])}<br>Jawapan betul: <b>${esc(q.o[q.a])}</b>`:''}<br><span class=mu>${esc(q.w)}</span></div>`}).join('');
+  const pc=Math.round(sc/qs.length*100),lv=pc>=90?'ERM Expert':pc>=70?'ERM Explorer':'Keep Practising';
+  S.att++;S.ok+=sc;S.tot+=qs.length;if(pc>=S.best){S.best=pc;S.lv=lv}fin('F');
+  $('#main').innerHTML=`<div class=card><h2>${lv}</h2><p class=big>${sc} / ${qs.length} (${pc}%)</p><p>${wr.size?'Topik untuk disemak: <b>'+[...wr].map(x=>TOP[x]).join(', ')+'</b>':'Tiada topik perlu disemak. Hebat!'}</p><button class=b id=rt>Cuba lagi (dikocok)</button><button class=b2 onclick="go('home')">Papan pemuka</button></div>${rv}`;$('#rt').onclick=P.F}};
+/* Module E: ERD builder */
+let B={N:[],E:[],id:1,sel:null,con:0,f:null};const NM2={E:'ENTITY',A:'attribute',R:'RELATIONSHIP'};
+const SOL=()=>{B={N:[{id:1,t:'E',x:170,y:260,n:'STUDENT'},{id:2,t:'E',x:730,y:260,n:'PROGRAMME'},{id:3,t:'R',x:450,y:260,n:'ENROLLED IN',c:'M:1'},{id:4,t:'A',x:90,y:130,n:'matric_no',k:1},{id:5,t:'A',x:250,y:130,n:'name'},{id:6,t:'A',x:640,y:130,n:'programme_code',k:1},{id:7,t:'A',x:810,y:390,n:'programme_name'}],E:[[1,3],[3,2],[4,1],[5,1],[6,2],[7,2]],id:8,sel:null,con:0,f:null}};
+P.E=()=>{$('#main').innerHTML=`<h2>Draw Your ERD</h2><div class=card><b>Cabaran:</b> <i>“A college stores information about students and programmes. Each student has a matric number and name. Each programme has a programme code and programme name. Every student is enrolled in one programme, and each programme can have many students.”</i></div>
+ <div class=tool><button class=b data-a=E>＋ Entity</button><button class=b style="background:var(--A)" data-a=A>＋ Attribute</button><button class=b style="background:var(--R)" data-a=R>＋ Relationship</button><button class=b2 id=cn>🔗 Sambung: Mati</button><button class=b2 data-a=V>✔ Semak</button><button class=b2 data-a=S>Contoh jawapan</button><button class=b2 data-a=X>⬇ Eksport PNG</button><button class=b2 data-a=Z>Kosongkan</button></div>
+ <p class=mu id=ms>Seret komponen untuk menggerakkannya. Dwi-klik garisan untuk memadam sambungan.</p>
+ <div class=svgw><svg id=cv viewBox="0 0 900 520" font-family="Lexend,Arial,sans-serif" font-size="13"></svg></div><div class=card id=pn></div><div id=vd></div>`;rd()};
+const gn=i=>B.N.find(n=>n.id==i),say=t=>{$('#ms').textContent=t};
+function rd(){$('#cv').innerHTML='<rect width="900" height="520" fill="#fff"/>'+draw(B.N,B.E,B.sel);pn();$('#cn').textContent='🔗 Sambung: '+(B.con?'Hidup':'Mati')}
+function pn(){const n=gn(B.sel);$('#pn').innerHTML=!n?'<span class=mu>Klik satu komponen untuk menyunting nama, Key Attribute atau cardinality.</span>':`<span class=tag style="background:${C[n.t]}"></span><b>${{E:'Entity',A:'Attribute',R:'Relationship'}[n.t]}</b> <input type=text id=pnm value="${esc(n.n)}" maxlength=24 aria-label="Nama"> ${n.t=='A'?`<label><input type=checkbox id=pk ${n.k?'checked':''}> Key Attribute</label>`:''}${n.t=='R'?`Cardinality <select id=pc><option value="">Pilih<option>1:1<option>1:M<option>M:1<option>M:N</select>`:''} <button class=b2 id=pd>Padam</button>`;
+ if(!n)return;$('#pnm').oninput=e=>{n.n=e.target.value.trim()?e.target.value:'?';$('#cv').innerHTML='<rect width="900" height="520" fill="#fff"/>'+draw(B.N,B.E,B.sel)};
+ if(n.t=='A')$('#pk').onchange=e=>{n.k=e.target.checked?1:0;rd()};if(n.t=='R'){$('#pc').value=n.c||'';$('#pc').onchange=e=>{n.c=e.target.value;rd()}}
+ $('#pd').onclick=()=>{B.N=B.N.filter(x=>x!=n);B.E=B.E.filter(e=>!e.includes(n.id));B.sel=null;rd()}}
+function pt(e){const c=$('#cv'),p=c.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(c.getScreenCTM().inverse())}
+function link(a,b){const A=gn(a),Bn=gn(b),k=[A.t,Bn.t].sort().join(''),ct=i=>B.E.filter(e=>e.includes(i)).length;
+ if(a==b||B.E.some(e=>e.includes(a)&&e.includes(b)))return'Sambungan ini sudah wujud.';
+ if(k=='AA')return'Attribute disambung kepada Entity, bukan kepada attribute lain.';if(k=='AR')return'Attribute mesti disambung kepada Entity, bukan Relationship.';
+ if(k=='EE')return'Dua Entity disambung melalui Relationship (diamond), bukan terus.';if(k=='RR')return'Relationship disambung kepada Entity.';
+ if(A.t=='A'&&ct(a)||Bn.t=='A'&&ct(b))return'Satu attribute hanya milik satu Entity.';if(A.t=='R'&&ct(a)>1||Bn.t=='R'&&ct(b)>1)return'Relationship dalam modul ini menghubungkan tepat dua Entity.';
+ B.E.push([a,b]);return''}
+document.addEventListener('pointerdown',e=>{const c=e.target.closest&&e.target.closest('#cv');if(!c)return;const g=e.target.closest('[data-id]');
+ if(!g){B.sel=null;B.f=null;rd();return}const id=+g.dataset.id;
+ if(B.con){if(!B.f){B.f=id;B.sel=id;say('Pilih komponen kedua untuk disambung.')}else{const m=link(B.f,id);say(m||'Disambung! Pilih cardinality pada relationship.');B.f=null;B.sel=id}rd();return}
+ const p=pt(e),n=gn(id);B.sel=id;B.dr={id,dx:n.x-p.x,dy:n.y-p.y};rd()});
+document.addEventListener('pointermove',e=>{if(!B.dr)return;const p=pt(e),n=gn(B.dr.id);n.x=Math.max(50,Math.min(850,p.x+B.dr.dx));n.y=Math.max(30,Math.min(490,p.y+B.dr.dy));$('#cv').innerHTML='<rect width="900" height="520" fill="#fff"/>'+draw(B.N,B.E,B.sel)});
+document.addEventListener('pointerup',()=>{if(B.dr){B.dr=null;pn()}});
+document.addEventListener('dblclick',e=>{const l=e.target.closest&&e.target.closest('[data-e]');if(l&&$('#cv')){B.E.splice(+l.dataset.e,1);rd();say('Sambungan dipadam.')}});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]'),c=e.target.id=='cn';if(c){B.con=!B.con;B.f=null;rd();say(B.con?'Mod sambung: klik dua komponen berturut-turut. Untuk relationship, sambung entity pertama (asal) dahulu.':'Mod sambung dimatikan.');return}
+ if(!b||!$('#cv'))return;const a=b.dataset.a;
+ if('EAR'.includes(a)){const n={id:B.id++,t:a,x:120+Math.random()*600|0,y:70+Math.random()*380|0,n:NM2[a]+(B.N.filter(x=>x.t==a).length+1)};B.N.push(n);B.sel=n.id;rd();say('Komponen ditambah. Namakan semula di bawah kanvas.')}
+ if(a=='S')ask('Contoh jawapan akan menggantikan kerja anda sekarang. Teruskan?',()=>{SOL();rd();say('Contoh jawapan dimuatkan. Perhatikan M:1 dari STUDENT ke PROGRAMME.')});
+ if(a=='Z')ask('Semua komponen dalam kanvas akan dipadam. Teruskan?',()=>{B={N:[],E:[],id:1,sel:null,con:0,f:null};rd();$('#vd').innerHTML=''});
+ if(a=='V')val();if(a=='X')xp()});
+function val(){const h=[],ents=B.N.filter(n=>n.t=='E'),nb=i=>B.E.filter(e=>e.includes(i)).map(e=>gn(e[0]==i?e[1]:e[0]));
+ if(!ents.length)h.push('Tambah sekurang-kurangnya satu Entity.');
+ ents.forEach(e=>{const at=nb(e.id).filter(n=>n.t=='A');if(!at.length)h.push(`${e.n} belum mempunyai attribute.`);else if(!at.some(a=>a.k))h.push(`${e.n} belum mempunyai Key Attribute (tandakan satu attribute).`);if(!nb(e.id).some(n=>n.t=='R')&&ents.length>1)h.push(`${e.n} belum disambung kepada sebarang relationship.`)});
+ B.N.filter(n=>n.t=='A'&&!nb(n.id).length).forEach(a=>h.push(`Attribute “${a.n}” belum disambung kepada Entity.`));
+ B.N.filter(n=>n.t=='R').forEach(r=>{const x=nb(r.id);if(x.length!=2)h.push(`${r.n} mesti menghubungkan tepat dua Entity.`);if(!r.c)h.push(`Pilih cardinality bagi ${r.n}.`)});
+ const U=s=>s.toUpperCase().trim(),has=(t,n,k)=>B.N.some(x=>x.t==t&&U(x.n)==U(n)&&(!k||x.k));
+ const ch=[['STUDENT',['matric_no','name']],['PROGRAMME',['programme_code','programme_name']]].flatMap(([e,as])=>{const en=B.N.find(n=>n.t=='E'&&U(n.n)==e);return en?as.filter(a=>!nb(en.id).some(n=>U(n.n)==U(a))).map(a=>`Cabaran: ${e} sepatutnya mempunyai ${a}.`):[`Cabaran: entity ${e} belum ada.`]});
+ const r=B.N.find(n=>n.t=='R'&&U(n.n)=='ENROLLED IN');if(!r)ch.push('Cabaran: tambah relationship ENROLLED IN.');else{const f=nb(r.id)[0];if(!((r.c=='M:1'&&f&&U(f.n)=='STUDENT')||(r.c=='1:M'&&f&&U(f.n)=='PROGRAMME')))ch.push('Cabaran: cardinality sepatutnya M:1 dari STUDENT ke PROGRAMME (sambung STUDENT dahulu, kemudian pilih M:1).')}
+ if(!has('A','matric_no',1))ch.push('Cabaran: matric_no ialah Key Attribute.');if(!has('A','programme_code',1))ch.push('Cabaran: programme_code ialah Key Attribute.');
+ const all=[...h,...ch];$('#vd').innerHTML=`<div class="card fb ${all.length?'bad':'good'}"><b>${all.length?'Petunjuk:':'🎉 Hebat! ERD anda lengkap dan menepati cabaran.'}</b>${all.map(x=>`<br>• ${esc(x)}`).join('')}</div>`;if(!all.length)fin('E')}
+async function xp(){if(!B.N.length){say('Kanvas kosong. Tambah komponen sebelum mengeksport.');return}
+ try{const sv=$('#cv').cloneNode(true);sv.setAttribute('xmlns','http://www.w3.org/2000/svg');sv.setAttribute('width',1800);sv.setAttribute('height',1040);sv.removeAttribute('id');
+  const im=new Image();await new Promise((ok,no)=>{im.onload=ok;im.onerror=no;im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(sv))});
+  const cn=document.createElement('canvas');cn.width=1800;cn.height=1040;cn.getContext('2d').drawImage(im,0,0);
+  const bl=await new Promise(r=>cn.toBlob(r,'image/png')),dw=window.claude&&await window.claude.use('downloads');
+  if(dw){await dw.save({filename:'erd-chen.png',data:new Uint8Array(await bl.arrayBuffer())})}else{const a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download='erd-chen.png';a.click()}
+  say('PNG sedia dieksport.')}catch(er){say('Eksport tidak berjaya'+(er&&er.code=='declined'?' (dibatalkan).':'. Cuba lagi.'))}}
+/* Lecturer guide */
+P.G=()=>{$('#main').innerHTML=`<h2>Panduan Pensyarah</h2>
+<div class=card><h3>Cadangan sesi (±60 minit)</h3><p>1) <b>Learn ERM</b> (10 min): bincang tiga langkah. 2) <b>Entity or Attribute?</b> (10 min): jawab berpasangan. 3) <b>Find the Key!</b> (8 min). 4) <b>Relationship Detective</b> (10 min). 5) <b>Draw Your ERD</b> (15 min): pelajar bina cabaran sampel dan eksport PNG. 6) <b>Challenge Quiz</b> (7 min) sebagai penilaian formatif.</p></div>
+<div class=card><h3>Logik pemarkahan</h3><p>B: setiap istilah dikira berasingan; markah soalan = betul/jumlah istilah. C: 1 markah jika key betul. D: 3 bahagian (pasangan entity, nama relationship, cardinality), masing-masing 1/3. F: 1 markah setiap soalan (padanan perlu semua betul). Tahap: ≥90% ERM Expert, 70–89% ERM Explorer, <70% Keep Practising. E disemak dengan petunjuk automatik terhadap cabaran sampel.</p></div>
+<div class=card><h3>Jawapan sampel</h3><p>Semua jawapan betul dan penjelasan dipaparkan dalam aplikasi selepas setiap soalan (modul B, C, D) dan dalam semakan kuiz (F). Butang <i>Contoh jawapan</i> dalam modul E memuatkan ERD rujukan: STUDENT (matric_no, name) — ENROLLED IN (M:1) — PROGRAMME (programme_code, programme_name).</p></div>
+<div class=card><h3>Privasi & luar talian</h3><p>Hanya kemajuan pembelajaran (modul selesai, skor) disimpan dalam local storage pelayar. Tiada data peribadi dikumpul. Simpan fail ini dan buka terus dalam pelayar untuk kegunaan luar talian (fon Google akan jatuh semula kepada fon sistem).</p></div>`};
+go('home');
+</script></body></html>
